@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/project/c_abstraction/src/c_abstraction.c
+stdio.h
+/home/project/c_abstraction/src/stdio.h
+string.h
+/home/project/c_abstraction/src/string.h
+

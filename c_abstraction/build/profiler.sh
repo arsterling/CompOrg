@@ -1,0 +1,3 @@
+#!/bin/bash
+/home/project/ia_riscv32i/work/ia/sdk/bin/ia_riscv32i-ia-isimulator-prof -r /home/project/c_abstraction/build/main.xexe --profiler-sequences 2,3,4,5 --profiler-sampling-rate 1  &&
+/home/project/ia_riscv32i/work/ia/sdk/bin/ia_riscv32i-ia-profiler /home/project/c_abstraction/build/codasip.prof --ide -f html  --decoders-coverage --resources-coverage --codal-coverage --sequences --address-space-histogram-bins 32 --address-space-histogram-start-end 0, -o /home/project/c_abstraction/work/profiler/1662477932334/

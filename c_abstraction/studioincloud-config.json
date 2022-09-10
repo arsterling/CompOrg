@@ -1,0 +1,22 @@
+{
+  "generated-ia-sdk": [
+    "/home/project/ia_riscv32i"
+  ],
+  "sdkPath": "/home/project/ia_riscv32i/work/ia/sdk",
+  "iaOrCa": "ia",
+  "compileConfigOptions": {
+    "compilerOptimization": "0",
+    "debugLevel": "3",
+    "noStdLib": false,
+    "nostartfiles": false,
+    "nodefaultlibs": false,
+    "nosymbolinfo": false,
+    "nosharedlibraries": false,
+    "extraFlags": "-lnxssys -lm -lcomp",
+    "extraLinkerFlags": "-Wl,--defsym,_HEAP_SIZE=0x2000",
+    "includePaths": false,
+    "flags": [],
+    "libraries": [],
+    "assemblyFlags": []
+  }
+}

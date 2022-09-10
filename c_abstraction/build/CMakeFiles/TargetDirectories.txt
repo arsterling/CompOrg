@@ -1,0 +1,3 @@
+/home/project/c_abstraction/build/CMakeFiles/rebuild_cache.dir
+/home/project/c_abstraction/build/CMakeFiles/main.xexe.dir
+/home/project/c_abstraction/build/CMakeFiles/edit_cache.dir

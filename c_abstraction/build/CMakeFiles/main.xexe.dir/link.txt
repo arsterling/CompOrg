@@ -1,0 +1,1 @@
+/home/project/ia_riscv32i/work/ia/sdk/bin/ia_riscv32i-ia-clang -O0 -g3  -lnxssys -lm -lcomp  -Wl,--defsym,_HEAP_SIZE=0x2000 -rdynamic CMakeFiles/main.xexe.dir/home/project/c_abstraction/src/c_abstraction.c.o  -o main.xexe 

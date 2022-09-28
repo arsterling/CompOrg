@@ -44,7 +44,7 @@ _start:
     nop
     nop
     //Test a positive and a negative number:
-    //1 should be smaller than -1 unsigned, so x3 should be 1.
+    //1 should be smaller than -1 unsigned, so x3 should be 0.
     sltiu x3, x1, 1    //x1 = -1,
     nop                //x3 = 1                                  
     nop
@@ -52,23 +52,28 @@ _start:
     //Test two negative numbers
     //-1 should be greater than -5 unsigned, so x3 should be 0.
     sltiu x3, x1, -5
-    nop                 //x3 = 1
+    nop                 //x3 = 0
+    nop
+    li x1, 9
+    //XORI Instructions - 0101^0000 is 0101
+    xori x3, x0, 5
+    nop                 //x3 = 0.
+    nop           
+    nop                 
+    //ORI Instructions
+    ori x3, x1, 3       //x1 = 9
+    nop                 //x3 = 5.
     nop
     nop
-    //XORI Instructions
-    //Test same bits
-    xori
+    //ANDI Instructions
+    //FAILURE HERE.
+    andi x3, x1, 3
+    nop             //x3 = B(11).
     nop
     nop
-    nop
-     //test differing bits.
-
-     //ORI Instructions
-
-     //ANDI Instructions
-     //Four NOPs required
+    //Four NOPs required
  	nop
- 	nop
+ 	nop             //x3 = 1
  	nop
  	nop
   	halt

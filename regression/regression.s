@@ -16,7 +16,6 @@ _start:
     
  	//Immediate (i-type) ALU operations
 
-
     //ADDI Instruction
  	addi x2, x0, 2				// load 2 into register x2
  	nop
@@ -85,10 +84,98 @@ _start:
  	Immediate (r-type) ALU operations
  */
     //ADD
+    li x1, 1
+    li x2, -2
+    nop
+    nop
+    //Add positive number and a zero (1, 0)
+    add x3, x0, x1      //x1 = 1
+    nop                 //x2 = -2
+    nop
+    nop
+    //Add a negative number and zero (-2, 0)
+    add x3, x0, x2
+    nop                 //x3 = 1
+    nop
+    nop
+    //Add two positive numbers (1, 1)
+    add x3, x1, x1
+    nop                 //x3 = -2
+    nop
+    nop
+    //Add two negative numbers (-2, -2)
+    add x3, x2, x2
+    nop                 //x3 = 2
+    nop
+    nop
+    //Add a negative number and a positive number (-2, 1)
+    add x3, x1, x2
+    nop                 //x3 = -4
+    nop
+    nop
     //SUB
-    //SLL
-    //SLT
-    //SLTU
+    //Negative minus a negative number (-2, -2)
+    sub x3, x2, x2
+    nop                 //x3 = -1
+    nop
+    nop
+    //Negative minus a positive number (-2, 1)
+    sub x3, x2, x1
+    nop                 //x3 = -4
+    nop
+    nop
+    //Positive number minus a negative number (1, -2)
+    sub x3, x1, x2
+    nop                 //x3 = -3
+    nop
+    nop
+    //Positive number minus a positive number (1, 1)
+    sub x3, x1, x1
+    nop                 //x3 = 3
+    nop
+    nop
+    //SLL - shifts bits to the right and pads with zeros
+    //Shift to the left by one bit, x3 should be 2
+    sll x3, x1, x1
+    nop                 //x3 = 0
+    nop
+    nop
+    //Shift to the left by a negative amount. x3 should be moved over by 14 bits (be 16384)
+    sll, x3, x1, x2
+    nop                 //x3  = 2
+    nop
+    nop
+    //SLT - if r1 < r2, rd = 1. Else rd = 0.
+    //Compare two equal numbers, ( 0 < 0), 0
+    slt x3, x1, x1
+    nop                 //x3 = 16384
+    nop
+    nop
+    //Compare less than, true (0 < 1), 1
+    slt x3, x0, x1
+    nop                 //x3 = 0
+    nop
+    nop
+    //Compare less than, false, 1 < -2), 0
+    slt x3, x1, x2
+    nop                 //x3 = 1
+    nop
+    nop
+    //SLTU - Same as slt, but unsigned. LEFT OFF HERE
+    //Compare equal
+    sltiu x3, x2, 5     //x3 = 0			
+    nop
+    nop
+    nop
+    //Test a positive and a negative number.
+    //1 should be smaller than -1 unsigned, so x3 should be 0.
+    sltiu x3, x1, 1    //x1 = -1,
+    nop                //x3 = 1                                  
+    nop
+    nop
+    //Test two negative numbers
+    //-1 should be greater than -5 unsigned, so x3 should be 0.
+    sltiu x3, x1, -5
     //XOR
     //SRL
     //SRA

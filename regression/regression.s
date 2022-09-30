@@ -86,12 +86,12 @@ _start:
     //ADD
     li x1, 1
     li x2, -2
-    nop
+    li x4, -5
     nop
     //Add positive number and a zero (1, 0)
     add x3, x0, x1      //x1 = 1
     nop                 //x2 = -2
-    nop
+    nop                 //x4 = -5
     nop
     //Add a negative number and zero (-2, 0)
     add x3, x0, x2
@@ -161,29 +161,61 @@ _start:
     nop                 //x3 = 1
     nop
     nop
-    //SLTU - Same as slt, but unsigned. LEFT OFF HERE
+    //SLTU - Same as slt, but unsigned. Recycled sltiu checks.
     //Compare equal
-    sltiu x3, x2, 5     //x3 = 0			
+    sltu x3, x1, x1     //x3 = 0			
     nop
     nop
     nop
     //Test a positive and a negative number.
-    //1 should be smaller than -1 unsigned, so x3 should be 0.
-    sltiu x3, x1, 1    //x1 = -1,
-    nop                //x3 = 1                                  
-    nop
-    nop
+    //1 should be smaller than -2 unsigned, so x3 should be 1.
+    sltu x3, x1, x2    
+    nop                 //x3 = 0                                  
+    li x2, 3
+    li x5, 16
     //Test two negative numbers
     //-1 should be greater than -5 unsigned, so x3 should be 0.
-    sltiu x3, x1, -5
+    sltu x3, x1, x4            
+    nop                 //x3 = 1 
+    nop                 //x2 = 3
+    nop                 //x5 = 16
     //XOR
-    //SRL
-    //SRA
+    //0011^0001 -> 0010 (2). Tests all combination of bits.
+    xor x3, x1, x2      
+    nop                 //x3 = 0
+    nop
+    nop
+    //SRL - Inserted bits are zeros. 010 -> 001, Shifted 0001_0000 by 1 bit -> 8
+    srl x3, x5, x1
+    nop                 //x3 = 2
+    nop
+    nop
+    //SRA - Same as SRL except it replicates the sign bit in the vacated bits. (101 -> 110
+    //Test with a positive number, Shifted 0001_0000 by three bits bit -> 2
+    sra x3, x5, x2
+    nop                 //x3 = 8                 
+    nop
+    nop
+    //Test with a negative number, Shifted 1101 by 1 bits -> 1110 (-6)
+    sra x3, x4, x1
+    nop                 //x3 = 2
+    nop
+    nop
     //OR
+    //ORing 3 and 1 does a nice mix of bits -> 3
+    or x3, x2, x1
+    nop                 //x3 = -6
+    nop
+    nop
     //AND
+    //Just with like OR, 3 and 1 have a combination of all bits.
+    and x3, x2, x1
+    nop                 //x3 = 3
+    nop
+    nop
     //FOUR NOPs
 	nop
-	nop
+	nop                 //x3 = 1
 	nop
 	nop
  	halt
@@ -333,5 +365,3 @@ LOAD_TEST:
  	nop
  	nop
  	nop
-
-

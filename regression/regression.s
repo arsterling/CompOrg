@@ -75,7 +75,7 @@ _start:
  	nop             //x3 = 1
  	nop
  	nop
-  	halt
+  	//halt
  	nop
  	nop
  	nop
@@ -141,7 +141,7 @@ _start:
     nop
     nop
     //Shift to the left by a negative amount. x3 should be moved over by 14 bits (be 16384)
-    sll, x3, x1, x2
+    sll x3, x1, x2
     nop                 //x3  = 2
     nop
     nop
@@ -171,14 +171,15 @@ _start:
     //1 should be smaller than -2 unsigned, so x3 should be 1.
     sltu x3, x1, x2    
     nop                 //x3 = 0                                  
-    li x2, 3
-    li x5, 16
+    nop
+    nop
     //Test two negative numbers
     //-1 should be greater than -5 unsigned, so x3 should be 0.
-    sltu x3, x1, x4            
-    nop                 //x3 = 1 
-    nop                 //x2 = 3
-    nop                 //x5 = 16
+    li x2, 3
+    sltu x3, x1, x4     //x3 = 1        
+    nop
+    nop
+    nop
     //XOR
     //0011^0001 -> 0010 (2). Tests all combination of bits.
     xor x3, x1, x2      
@@ -227,11 +228,35 @@ _start:
  	Immediate (r-type immediate) ALU operations
  */
     //SLLI
-    //SRLI
-    //SRAI
+    //Shift 1 left by 1, should be 2.
+    slli x3, x1, 1
+    nop                 
+    nop
+    nop
+    //Shift to the left by a negative amount. x3 should be moved over by 14 bits (be 16384)
+    slli x3, x1, -2
+    nop                 //x3  = 2
+    nop
+    nop
+    //SRLI - Shift to the right; Pad with zeros. 16 -> 8
+    srli x3, x5, 1
+    nop                 //x3 = 16384
+    nop
+    nop
+    //SRAI - Shift right; pad with sign bit.
+    //Shift positive number; 16 -> 4
+    srai x3, x5, 2
+    nop                 //x3 = 8
+    nop
+    nop
+    //Shift negative number; x4 = -5. 1101 -> 1110 (-6).
+    srai x3, x4, 1
+    nop                 //x3 = 4
+    nop
+    nop
     //FOUR NOPs
 	nop
-	nop
+	nop                 //x3 = -6
 	nop
 	nop
  	halt
@@ -365,3 +390,5 @@ LOAD_TEST:
  	nop
  	nop
  	nop
+
+

@@ -83,16 +83,17 @@ _start:
  /*
  	Immediate (r-type) ALU operations
  */
+    //Need to test with false error introductions
     //ADD
     li x1, 1
     li x2, -2
     li x4, -5
-    nop
+    li x5, 16
     //Add positive number and a zero (1, 0)
     add x3, x0, x1      //x1 = 1
     nop                 //x2 = -2
     nop                 //x4 = -5
-    nop
+    nop                 //x5 = 16
     //Add a negative number and zero (-2, 0)
     add x3, x0, x2
     nop                 //x3 = 1
@@ -121,7 +122,7 @@ _start:
     nop
     //Negative minus a positive number (-2, 1)
     sub x3, x2, x1
-    nop                 //x3 = -4
+    nop                 //x3 = 0
     nop
     nop
     //Positive number minus a negative number (1, -2)
@@ -148,7 +149,7 @@ _start:
     //SLT - if r1 < r2, rd = 1. Else rd = 0.
     //Compare two equal numbers, ( 0 < 0), 0
     slt x3, x1, x1
-    nop                 //x3 = 16384
+    nop                 //x3 = x40000
     nop
     nop
     //Compare less than, true (0 < 1), 1
@@ -157,6 +158,7 @@ _start:
     nop
     nop
     //Compare less than, false, 1 < -2), 0
+    //FAILURE.
     slt x3, x1, x2
     nop                 //x3 = 1
     nop
@@ -170,14 +172,14 @@ _start:
     //Test a positive and a negative number.
     //1 should be smaller than -2 unsigned, so x3 should be 1.
     sltu x3, x1, x2    
-    nop                 //x3 = 0                                  
+    li x6, -1                 //x3 = 0                                  
     nop
     nop
     //Test two negative numbers
     //-1 should be greater than -5 unsigned, so x3 should be 0.
     li x2, 3
-    sltu x3, x1, x4     //x3 = 1        
-    nop
+    sltu x3, x6, x4     //x3 = 1        
+    nop                 //x1 = -6
     nop
     nop
     //XOR
@@ -197,7 +199,7 @@ _start:
     nop                 //x3 = 8                 
     nop
     nop
-    //Test with a negative number, Shifted 1101 by 1 bits -> 1110 (-6)
+    //Test with a negative number, Shifted 1101 by 1 bits -> 1110 (D)
     sra x3, x4, x1
     nop                 //x3 = 2
     nop
@@ -205,7 +207,7 @@ _start:
     //OR
     //ORing 3 and 1 does a nice mix of bits -> 3
     or x3, x2, x1
-    nop                 //x3 = -6
+    nop                 //x3 = D
     nop
     nop
     //AND
@@ -271,10 +273,33 @@ _start:
  	addi x3, x0, 2				// load x3 register with 2
  	addi x4, x0, 3				// load x4 register with 3
  	addi x5, x0, -1				// load x5 register with -1
+    //WB -> ID data hazards.
+    add x2, x3, x4              //x3 =2, x4 =3, x2 = 1
 	nop
 	nop
+    add x3, x2, x4              //x2 = 5, x4 = 3
+    nop
 	nop
-	nop
+    nop
+    nop
+    nop                         //x3 = 8
+    //WB -> EX Data hazards
+    add x2, x3, x4              //x3 = 8, x4 = 3
+    nop
+    add x3, x2, x4              //x2 = 11, x4 = 3
+    nop
+    nop
+    nop
+    nop
+    nop                         //x3 = 14
+    //MEM -> EX Data hazards.
+    add x2, x3, x4              //x3 = 14, x4 = 3
+    add x3, x2, x4              //x2 = 17, x4 = 3
+    nop
+    nop
+    nop
+    nop
+    nop                         //x3 = 20
   	halt
  	nop
  	nop
@@ -390,5 +415,3 @@ LOAD_TEST:
  	nop
  	nop
  	nop
-
-

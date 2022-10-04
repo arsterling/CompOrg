@@ -245,7 +245,7 @@ _start:
     nop                 //x3 = 16384
     nop
     nop
-    //SRAI - Shift right; pad with sign bit.
+    //SRAI - Shift right; pad with sign bit. (Should have a failure)
     //Shift positive number; 16 -> 4
     srai x3, x5, 2
     nop                 //x3 = 8
@@ -308,12 +308,101 @@ _start:
  /*
  	Branch (b-type) operations
  */
-
+    li x1, 1
+    li, x2, 2
+    li, x3, -3
+    li, x4, -4
 	nop
 	nop
 	nop
 	nop
+BEQN:
+    //Test less than - Should not take this brancdh
+    beq x1, x2, BEQN
+    nop
+    nop
+    //Test Greater than - should not take this branch
+    beq x2, x1, BRANCH_FAIL
+    nop
+    nop
+    //Test Equal - should take this branch
 	beq x0, x0, PASS
+    nop
+    nop
+PASS:
+BNEN:
+    //test equal to - should not take this branch
+    bne x0, x0, BNEN
+    nop
+    nop
+    //Test less than - should take this branch
+    bne x1, x2, PASS2
+    nop
+    nop
+PASS2:
+    //Test greater than - should take this branch
+    bne x2, x1, PASS3
+    nop
+    nop
+PASS3:
+    //test less than - should take this branch
+    blt x1, x2, PASS4
+    nop
+    nop
+PASS4:
+    //test equal to - should not take this branch
+    blt x0, x0, BRANCH_FAIL
+    nop
+    nop
+BLTN:
+    //test greater than - should not take this branch
+    blt x2, x1, BLTN
+    nop
+    nop
+BGEN:
+    //Text less than - should not branch
+    bge x1, x2 BGEN
+    nop
+    nop
+    //Test greater than - take this branch
+    bge x2, x1, PASS5
+    nop
+    nop
+PASS5:
+    //Test equal to - should take this branch
+    bge x0, x0, PASS6
+    nop
+    nop
+PASS6:
+BLTUN:
+    //Test equal values - should not branch.
+    bltu x0, x0, BLTUN
+    nop
+    nop
+    //test greater than - should fail
+    bltu x2, x1, BRANCH_FAIL
+    nop
+    nop
+    //Test negative and positive values - should branch (1 < -3 unsigned)
+    bltu x1, x3, PASS7
+    nop
+    nop
+PASS7:
+BGEUN:
+    //test a less than case - Don't Branch
+    bgeu x1, x3, BGEUN
+    nop
+    nop
+PASS8:
+    //Test equal to - Branch
+    bgeu x1, x1, PASS9
+    nop
+    nop
+PASS9:
+    //Test a greater than - Branch
+    bgeu x3, x1, PASS_FINAL
+    nop
+    nop
 BRANCH_FAIL:
 	nop
 	nop
@@ -324,7 +413,7 @@ BRANCH_FAIL:
 	nop
 	nop
 	nop
-PASS:
+PASS_FINAL:
 	nop
 	nop
 	nop
@@ -336,10 +425,35 @@ PASS:
  /*
  	jump instruction operations
  */
+    //JAL Test (Fail should be here)
+    jal x2, JAL_PASS
 	nop
 	nop
 	nop
+JAL_PASS:
+    nop
+    nop
+    nop
+    nop
 	nop
+    //JALR Test - should jump to the JALRPASS label.
+    auipc x1, 0
+    nop
+    nop
+    nop
+    nop
+    nop
+    jalr x2, 48(x1)
+    nop
+    nop
+    nop
+    nop
+    nop
+JALRPASS:
+    nop
+    nop
+    nop
+    nop
   	halt
  	nop
  	nop
@@ -363,8 +477,25 @@ PASS:
  	addi x11, x0, (DATA_MINUS >> 12)	// Assume DATA memory address less than 24-bits
  	slli x11, x11, 12					// Move the upper 12-bits to locations 12..23
  	ori x11, x11, (DATA_MINUS & 0xfff)	// OR in the lower 12-bits to create all 24-bits
- 	// start of Store Instruction test
-	nop
+ 	//Start of Store Instruction test
+    //Store Byte:
+    sb x20, 0(x10)          //1000: 0x10
+    srli x23, x20, 8        //x23: 0x765432
+    sb x23, 1(x10)          //1001: 0x32
+    srli x23, x23, 8        //x23: 0x7654
+    sb x23, 2(x10)          //1002: 54
+    srli x23, x23, 8        //x23: 0x76
+    sb x23, 3(x10)          //1003: 76
+    srli x23, x23, 8        //x23 = 0x0
+    //Store Half Word:
+ 	sh x21, 4(x10)          //1004-1005: ef-cd
+    srli x23, x21, 8        //x23: 0x89ab
+    sh x23, 6(x10)          //1006-1007: ab-89
+    //Store Word
+    sw x20, 8(x10)          //1008-1012: 10-32-54-76
+    //Easiest to test, negative offset with whole word
+    sw x21, -4(x11)         //1028-1032: ef-cd-ab-89
+    nop
 	nop
 	nop
 	nop
@@ -375,17 +506,17 @@ PASS:
   	nop
  /*
  	Data Memory Space for regression test
- 	- There are 8 NOP locations which are available
- 		to be overwritten for test
+ 	- There are 8 NOP locations which are available to be overwritten for test
  	- Accessing the first data location by 0 offset of x10 => 0(x10)
  	- Accessing the 1st byte in data space is 1 offset of x10 => 1(x10)
  	- Accessing the 2nd half-word in data space is 2 offset of x10 => 2(x10)
  	- Accessing the 2nd word in data space is 4 offset of x10 => 4(x10)
  */
+
 DATA:
- 	nop
- 	nop
- 	nop
+    nop
+    nop
+    nop
  	nop
  	nop
  	nop

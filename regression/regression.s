@@ -67,12 +67,12 @@ _start:
     //ANDI Instructions
     //FAILURE HERE.
     andi x3, x1, 3
-    nop             //x3 = B(11).
+    nop             //x3 = B(11). 
     nop
     nop
     //Four NOPs required
  	nop
- 	nop             //x3 = 1
+ 	nop             //x3 = 1 -> Failure. The register doesn't update from previous value.
  	nop
  	nop
   	//halt
@@ -221,7 +221,7 @@ _start:
 	nop                 //x3 = 1
 	nop
 	nop
- 	halt
+ 	//halt
  	nop
  	nop
  	nop
@@ -236,7 +236,7 @@ _start:
     nop
     nop
     //Shift to the left by a negative amount. x3 should be moved over by 14 bits (be 16384)
-    slli x3, x1, -2
+    slli x3, x1, -1
     nop                 //x3  = 2
     nop
     nop
@@ -309,9 +309,9 @@ _start:
  	Branch (b-type) operations
  */
     li x1, 1
-    li, x2, 2
-    li, x3, -3
-    li, x4, -4
+    li x2, 2
+    li x3, -3
+    li x4, -4
 	nop
 	nop
 	nop
@@ -361,7 +361,7 @@ BLTN:
     nop
 BGEN:
     //Text less than - should not branch
-    bge x1, x2 BGEN
+    bge x1, x2, BGEN
     nop
     nop
     //Test greater than - take this branch
@@ -528,6 +528,62 @@ DATA:
  	Load (l-type)  operations
  */
 LOAD_TEST:
+    li x6, 0xff
+    li x9, 0xfff
+    slli x9, x9, 4
+    ori x9, x9, 0xf         //x9 = 0xffff
+    //lw test
+    lw x1, 0(x10)           //x1 = 0x76543210
+    //Compare - should not branch
+    bne x1, x20, LOAD_FAIL
+    //lh test
+    lh x2, 6(x10)           //x2 = 0xffff89ab
+    slli x2, x2, 16         //x2 = 0x89ab0000
+    lh x8, 4(x10)           //x8 = ffffcdef
+    and x8, x9, x8          //x8 = 0000cdef
+    or x2, x2, x8           //x2 - 89abcdef
+    //Compare - should not branch
+    bne x2, x21, LOAD_FAIL
+    //lhu test
+    lhu x2, 6(x10)          //x2 = 0x89ab
+    slli x2, x2, 16         //x2 = 0x89ab0000
+    lhu x7, 4(x10)          //x7 = 0xcdef
+    or x2, x2, x7           //x2 = 0x89abcdef
+    //Compare - should not branch
+    bne x2, x21, LOAD_FAIL
+    //lb test
+    lb x3, 11(x10)          //x3 = 0xffffff76
+    slli x3, x3, 8          //x3 = 0xffff7600
+    lb x4, 10(x10)          //x4 = 0xffffff54
+    and x4, x4, x6          //x4 = 0x00000054
+    or x3, x3, x4           //x3 = 0xffff7654
+    slli x3, x3, 8          //x3 = 0xff765400
+    lb x4, 9(x10)           //x4 = 0xffffff32
+    and x4, x4, x6          //x4 = 0x00000032
+    or x3, x3, x4           //x3 = 0xff765432
+    slli x3, x3, 8          //x3 = 0x76543200
+    lb x4, 8(x10)           //x4 = 0xffffff10
+    and x4, x4, x6          //x4 = 0x00000010
+    or x3, x3, x4           //x3 = 0x76543210
+    //Compare - should not branch
+    bne x3, x20, LOAD_FAIL
+    //lbu test
+    lbu x3, 11(x10)         //x3 = 0x76
+    slli x3, x3, 8          //x3 = 0x7600
+    lbu x4, 10(x10)         //x4 = 0x54
+    or x3, x3, x4           //x3 = 0x7654
+    slli x3, x3, 8          //x3 = 0x765400
+    lbu x4, 9(x10)          //x4 = 0x32
+    or x3, x3, x4           //x3 = 0x765432
+    slli x3, x3, 8          //x3 = 0x76543200
+    lbu x4, 8(x10)          //x4 = 0x10
+    or x3, x3, x4           //x3 = 0x76543210
+    //Compare - should not branch
+    bne x3, x20, LOAD_FAIL
+    //Negative offset test
+    lw x5, -4(x11)          //x5 = 0x89abcdef
+    //Compare - Should not branch
+    bne x5, x21, BRANCH_FAIL
 	nop
 	nop
 	nop
@@ -537,8 +593,8 @@ LOAD_TEST:
  	nop
  	nop
  	nop
- LOAD_FAIL:							// Using branch statements, if load does not
- 	nop								// return result expected, branch to LOAD_FAIL label
+ LOAD_FAIL:							// Using branch statements, if load does not return result expected, branch to LOAD_FAIL label
+ 	nop								
  	nop
  	nop
  	halt

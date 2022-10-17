@@ -98,10 +98,10 @@ signal bit[BOOLEAN_BIT]        s_id_jump_inst;             // bit used to notify
 // IDEX pipeline register
 register bit[ADDR_W]        r_idex_pc              { pipeline = pipe.IDEX; };    // Program Counter
 register bit[RF_XPR_W]      r_idex_rd              { pipeline = pipe.IDEX; };    // rd (write) register number
-register bit[RF_XPR_W]      r_idex_rf_src1         { pipeline = pipe.IDEX; };    // register file output for src1, rs1
-register bit[RF_XPR_W]      r_idex_rf_src2         { pipeline = pipe.IDEX; };    // register file output for src2, rs2
+register bit[ADDR_W]        r_idex_rf_src1         { pipeline = pipe.IDEX; };    // register file output for src1, rs1
+register bit[ADDR_W]        r_idex_rf_src2         { pipeline = pipe.IDEX; };    // register file output for src2, rs2
 register bit[BOOLEAN_BIT]   r_idex_regwrite        { pipeline = pipe.IDEX; };    // RF write? r_idex_regwrite
-                                                                                  // immediate value for src2
+register bit[WORD_W]        r_idex_src2_imm        { pipeline = pipe.IDEX; };    // immediate value for src2
 
 register bit[ALUOP_W]           r_idex_aluop                { pipeline = pipe.IDEX; };    // ALU opcode
 register bit[ALU_SRC1_SEL_W]    r_idex_src1_sl              { pipeline = pipe.IDEX; };    // ALU src1 select lines for mux
@@ -121,20 +121,20 @@ register bit[BOOLEAN_BIT]  r_idex_halt                { pipeline = pipe.IDEX; };
 // -------------------------------------------------------------------------------------------------
 
 // ALU signals
-                                                                                  // src1 operand into ALU
-                                                                                  // src2 operand into ALU
-                                                                                  // result of ALU operation
+register bit[BOOLEAN_BIT]       r_idex_memread              { pipeline = pipe.IDEX; };      // src1 operand into ALU
+register bit[BOOLEAN_BIT]       r_idex_memread              { pipeline = pipe.IDEX; };      // src2 operand into ALU
+register bit[BOOLEAN_BIT]       r_idex_memread              { pipeline = pipe.IDEX; };      // result of ALU operation
 
 
 // EXMEM pipeline register
-                                                                                  // Data result from ALU
-register bit[RF_XPR_W] r_exmem_rd                  { pipeline = pipe.EXMEM; };    // rd / write register
-register bit[BOOLEAN_BIT] r_exmem_regwrite            { pipeline = pipe.EXMEM; };    // Does the current instruction wrt to RF
-register bit[BOOLEAN_BIT]  r_exmem_branch_inst        { pipeline = pipe.EXMEM; };    // If true, conditional branch instruction
-register bit[BOOLEAN_BIT]  r_exmem_jump_inst          { pipeline = pipe.EXMEM; };    // If true, jump instruction
-register bit[MEM_OPCODE_W] r_exmem_mem_ops         { pipeline = pipe.EXMEM; };    // Opcode for Loads and Store operations (NOP = no load or store)
-register bit[BOOLEAN_BIT]  r_exmem_memread            { pipeline = pipe.EXMEM; };    // If true, it is a Load operation
-register bit[ADDR_W] r_exmem_target_address         { pipeline = pipe.EXMEM; };    // Address to branch or jump to if required
+register bit[WORD_ W]       r_exmem_alu_result          { pipeline = pipe.EXMEM; };    // Data result from ALU
+register bit[RF_XPR_W]      r_exmem_rd                  { pipeline = pipe.EXMEM; };    // rd / write register
+register bit[BOOLEAN_BIT]   r_exmem_regwrite            { pipeline = pipe.EXMEM; };    // Does the current instruction wrt to RF
+register bit[BOOLEAN_BIT]   r_exmem_branch_inst         { pipeline = pipe.EXMEM; };    // If true, conditional branch instruction
+register bit[BOOLEAN_BIT]   r_exmem_jump_inst           { pipeline = pipe.EXMEM; };    // If true, jump instruction
+register bit[MEM_OPCODE_W]  r_exmem_mem_ops             { pipeline = pipe.EXMEM; };    // Opcode for Loads and Store operations (NOP = no load or store)
+register bit[BOOLEAN_BIT]   r_exmem_memread             { pipeline = pipe.EXMEM; };    // If true, it is a Load operation
+register bit[ADDR_W]        r_exmem_target_address      { pipeline = pipe.EXMEM; };    // Address to branch or jump to if required
 
 
 // -------------------------------------------------------------------------------------------------
@@ -145,9 +145,9 @@ signal bit[BOOLEAN_BIT]   s_me_mem_busy;                                        
 
 
 // MEMWB pipeline register
-                                                        // ALU result from Memory stage
-                                                        // Destination, rd, register index
-                                                        // Register Write (regwrite)
+register bit[WORD_ W]       r_memwb_alu_result          { pipeline = pipe.MEMWB; };         // ALU result from Memory stage
+register bit[RF_XPR_W]      r_memwb_rd                  { pipeline = pipe.MEMWB; };         // Destination, rd, register index
+register bit[BOOLEAN_BIT]   r_memwb_regwrite            { pipeline = pipe.MEMWB; };         // Register Write (regwrite)
 
 
 // -------------------------------------------------------------------------------------------------

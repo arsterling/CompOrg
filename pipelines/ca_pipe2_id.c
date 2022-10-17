@@ -91,12 +91,11 @@ event id : pipeline(pipe.IDEX)
         // TO optimize performance, the immediate value will always be calculated and passed to the execution stage
         // via the IDEX pipeline register
         // Use the concatanation operator :: to create the desired fields from the instruction field if required
-        s_id_imm_rtype = (int32)(int1)0;
-        s_id_imm_itype = (int32)(int12) (s_id_instr[31..20] :: (uint20)0);
-        s_id_imm_stype = (int32)(int12) (s_id_instr[31..25] :: s_id_instr[11..7] :: (uint7)0);
+        s_id_imm_itype = (int32)(int12) (s_id_instr[31..20]);
+        s_id_imm_stype = (int32)(int12) (s_id_instr[31..25] :: s_id_instr[11..7]);
         s_id_imm_btype = (int32)(int13) (s_id_instr[31..31] :: s_id_instr[7..7] :: s_id_instr[30..25] :: s_id_instr[11..8] :: (uint1)0);
-        s_id_imm_utype = (int32)(int20) (s_id_instr[31..12] :: (uint12)0);
-        s_id_imm_jtype = (int32)(int13) (s_id_instr[31..31] :: s_id_instr[19..12] :: s_id_instr[20..20] :: s_id_instr[29..21] :: (uint12)0);
+        s_id_imm_utype = (int32)(((int20) (s_id_instr[31..12])) << 12);
+        s_id_imm_jtype = (int32)(int21) (s_id_instr[31..31] :: s_id_instr[19..12] :: s_id_instr[20..20] :: s_id_instr[29..21] :: (uint1)0);
 
         // Register file read for src1 and src2 operands.  Similar to the immediate decode, both src1 and src2
         // values will be read in parallel from the register file as the instruction is decoded to optimize performance
@@ -220,10 +219,10 @@ event id_output : pipeline(pipe.IDEX)
         r_idex_aluop = s_id_aluop;
 
         // What signal from the decoder will you set the following IDEX pipeline register which will select the src1 ALU input mux?
-        r_idex_src1_sl = s_id_alusrc1
+        r_idex_src1_sl = s_id_alusrc1;
 
         // What signal from the decoder will you set the following IDEX pipeline register which will select the src2 ALU input mux?
-        r_idex_src2_sl = s_id_alusrc2
+        r_idex_src2_sl = s_id_alusrc2;
 
         // Passing Decoder control-signals to the EX stage
         r_idex_branch_inst = s_id_branch_inst;

@@ -1,0 +1,237 @@
+/**
+ * Codasip s.r.o.
+ *
+ * CONFIDENTIAL
+ *
+ * Copyright 2022 Codasip s.r.o.
+ *
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained in this file, is and shall remain the property of
+ * Codasip s.r.o. and its suppliers, if any.
+ *
+ * The intellectual and technical concepts contained herein are confidential and proprietary to
+ * Codasip s.r.o. and are protected by trade secret and copyright law.  In addition, elements of the
+ * technical concepts may be patent pending.
+ *
+ * This file is part of the Codasip Studio product. No part of the Studio product, including this
+ * file, may be use, copied, modified, or distributed except in accordance with the terms contained
+ * in Codasip license agreement under which you obtained this file.
+ *
+ *  \file   ca_pipe2_ex.codal
+ *  \author Codasip
+ *  \date   09.02.2022
+ *  \brief  cycle accurate model
+ */
+
+#include "config.hcodal"
+#include "ca_defines.hcodal"
+
+// -------------------------------------------------------------------------------------------------
+// Decode stage
+// -------------------------------------------------------------------------------------------------
+
+event id : pipeline(pipe.IDEX)
+{
+    use inst_decode;
+    use id_output;
+
+    semantics
+    {
+        uint32 id_instr_temp;
+        uint32 temp_instr;
+        bool cache_ready, cache_response;
+        uint2 instr_control;
+        
+        // Set local stall.
+        s_id_stall = 0;
+
+        if_fetch.transport(CP_PHS_DATA, cache_ready, cache_response, id_instr_temp); // Read the instruction from memory request in if-stage
+
+        if (!cache_ready) s_id_icache_stall = true;                     // If i-cache not ready, stall instructions until i-cache is ready
+        else s_id_icache_stall = false;
+
+        instr_control = (uint1)(r_id_buffer_full) :: (uint1)(s_id_icache_stall || !id_instr_temp[0..0]);
+
+        switch (instr_control) {
+            case (uint2) 10:                // instruction buffer full, recovering from ID stage stall
+            case (uint2) 11:                // buffer has priority over instruction from memory or cache
+                s_id_instr = r_id_instr_preserved;
+                break;
+            case (uint2) 01:                // cache is stalled or instruction input is 0
+                s_id_instr = NOP_INSTRUCTION;
+                break;
+            case (uint2) 00:                // instruction from memory or i-cache
+                s_id_instr = id_instr_temp;
+                break;
+        }
+
+        // After obtaining the instruction word, all the values of the instruction word will be parsed into their individual
+        // signals.
+
+        // Build up the opcode
+        // Use the concatanation operator :: to create the desired fields from the instruction field if required
+        // The full instruction opcode in func7 :: func3 :: opcode
+        s_id_opcode = s_id_instr[31..25] :: s_id_instr[14..12] :: s_id_instr[6..0];
+
+        // address for src1
+        // Use the concatanation operator :: to create the desired fields from the instruction field if required
+        s_id_src1 = [19..15];
+
+        // address for src2
+        // Use the concatanation operator :: to create the desired fields from the instruction field if required
+        s_id_src2 = [24..20];
+
+        // destination address
+        // Use the concatanation operator :: to create the desired fields from the instruction field if required
+        s_id_rd = [11..7];
+
+        // immediate decode
+        // At this stage, the instruction has not been decoded to determine if an immediate value will be required
+        // TO optimize performance, the immediate value will always be calculated and passed to the execution stage
+        // via the IDEX pipeline register
+        // Use the concatanation operator :: to create the desired fields from the instruction field if required
+        s_id_imm_rtype = (int32)(int1)0;
+        s_id_imm_itype = (int32)(int12) (s_id_instr[31..20] :: (uint20)0);
+        s_id_imm_stype = (int32)(int12) (s_id_instr[31..25] :: s_id_instr[11..7] :: (uint7)0);
+        s_id_imm_btype = (int32)(int13) (s_id_instr[31..31] :: s_id_instr[7..7] :: s_id_instr[30..25] :: s_id_instr[11..8] :: (uint1)0);
+        s_id_imm_utype = (int32)(int20) (s_id_instr[31..12] :: (uint12)0);
+        s_id_imm_jtype = (int32)(int13) (s_id_instr[31..31] :: s_id_instr[19..12] :: s_id_instr[20..20] :: s_id_instr[29..21] :: (uint12)0);
+
+        // Register file read for src1 and src2 operands.  Similar to the immediate decode, both src1 and src2
+        // values will be read in parallel from the register file as the instruction is decoded to optimize performance
+        // The register file has been defined as 1 write port, wrt0, and two read ports, src1 and src2.  To specify the
+        // the port, you indicate it by affixing at the end of the register file name with a "." and the "port name"
+        // Here is the architectural definition of the register file found in "project"/model/share/resources/arch.codal
+        //
+        //          arch register_file bit[WORD_W] rf_xpr
+        //          {
+        //              dataport src1, src2 {flag = R;};
+        //              dataport wrt0 {flag = W;};
+        //              size = RF_XPR_SIZE;
+        //              reset = true;
+        //              default = 0;
+        //           };
+        //
+        // To specify the desired register, you use the register number as an index into an array as you would in
+        // c-programming.  Example is register_file.port[register_number]
+
+        s_id_rf_src1 = rf_xpr.src1[15];
+        s_id_rf_src2 = rf_xpr.src2[20];
+
+        // Preserve the current instruction decoded
+        if (cache_ready & !r_id_buffer_full) {
+            r_id_instr_preserved = s_id_instr;
+            r_id_pc_preserved = r_ifid_pc;
+        }
+
+        // Decoder activation
+        inst_decode(s_id_opcode);
+
+        // Update the pipeline registers between the Instruction Decode (ID) and Execute (EX) stages
+        id_output();
+    };
+};
+
+event id_output : pipeline(pipe.IDEX)
+{
+
+    semantics
+    {
+        // -----------------------------------------------------------------------------------------
+        // Pipeline output
+        // -----------------------------------------------------------------------------------------
+
+        // Assuming at this stage the worst case timing of any of the stages for a 5-stage pipeline will
+        // be the Execute (EX) stage, we will move the mux to select which type of interrupt to use if
+        // required for the ALU operation into the Instruction Decode (ID) stage.  By removing this addional
+        // logic that must occur in series, before the ALU operation, the total path through the EX stage
+        // is reduced, minimizing the time required for the EX stage to complete.
+        //
+        // Since all clock stages must run at the same clock frequency, minimizing the time in the slowest
+        // pipeline stage will increase the frequency of this stage (frequency = 1 / period) and thus increases
+        // the clock frequency of the entire solution.
+        //
+        // Use the control line s_id_imm_gen_sel that is generated from the Decoder to set the Immediate value
+        // to pass to the EX stage through the IDEX pipeline register
+        //
+        // Example:
+        //      switch (s_id_imm_gen_sel) {
+        //          case RTYPE_IMM_SEL:
+        //              r_idex_src2_imm = s_id_imm_rtype;
+        //              break;
+        //          ...
+        //          ...
+        //          default:
+        //              r_idex_src2_imm = 0;
+        //              break;
+        //      }
+        //
+        // Complete the switch statement below using the pipeline register resource that you added in the 
+        // previous step of this assignment.
+
+
+
+        // Passing data-path and control-signals to the next stage, EX, through the IDEX pipeline register
+
+        // Use the Program Counter IDEX pipeline register thate you declared in ca_resources.codal
+        // What register from the IFID pipeline register will you use to pass the PC to the EX stage
+        // You just added this pipeline register resource in the previous step of this assignment
+        // Add this assignment here:
+
+
+        // Use the register file ouptput for src1 IDEX pipeline register you declared in ca_resources.codal
+        // What signal from the id (Instruction Decode) event will you use to pass the rs1 register value to 
+        // the EX stage?  
+        // You just added this pipeline register resource in the previous step of this assignment
+        // Add this assignment here:
+
+
+
+        // Use the register file ouptput for src2 IDEX pipeline register you declared in ca_resources.codal
+        // What signal from the id (Instruction Decode) event will you use to pass the rs2 register value to 
+        // the EX stage?  
+        // You just added this pipeline register resource in the previous step of this assignment
+        // Add this assignment here:
+
+
+
+        // Use the rd (destination) register IDEX pipeline register that you declared in ca_resources.codal
+        // What signal from the instruction parsing will you set the following IDEX pipeline register?
+        // You just added this pipeline register resource in the previous step of this assignment
+        // Add this assignment here:
+
+
+        // In the RISCV architecture, register 0 is a special register that will always read 0 which
+        // implies that it is a read-only register of value 0.  If the destination register is 0,
+        // we can disable the writes to register 0
+        //
+        // Use an if statement to disable the regwrite control-signal, make false, if the destination
+        // register, rd, is 0 and if not 0, assign the s_id_regwrite signal from the decoder, 
+        // s_id_regwrite
+        //
+        // What signal will you use in the if statement from the instruction parsing?
+        // You just added this pipeline register resource in the previous step of this assignment
+        // Write this if, else statement here for r_idex_regwrite
+
+
+
+        // What signal from the decoder will you set the following IDEX pipeline register?
+        r_idex_aluop = s_id_aluop;
+
+        // What signal from the decoder will you set the following IDEX pipeline register which will select the src1 ALU input mux?
+        r_idex_src1_sl = s_id_alusrc1
+
+        // What signal from the decoder will you set the following IDEX pipeline register which will select the src2 ALU input mux?
+        r_idex_src2_sl = s_id_alusrc2
+
+        // Passing Decoder control-signals to the EX stage
+        r_idex_branch_inst = s_id_branch_inst;
+        r_idex_jump_inst = s_id_jump_inst;
+        r_idex_mem_ops = s_id_mem_ops;
+        r_idex_memread = s_id_memread;
+
+        // Passing the halt signal to the EX stage
+        r_idex_halt         = s_id_halt;
+    };
+};

@@ -96,20 +96,20 @@ signal bit[BOOLEAN_BIT]        s_id_jump_inst;             // bit used to notify
 
 
 // IDEX pipeline register
-                                                   { pipeline = pipe.IDEX; };    // Program Counter
-                                                   { pipeline = pipe.IDEX; };    // rd (write) register number
-                                                   { pipeline = pipe.IDEX; };    // register file output for src1, rs1
-                                                                                  // register file output for src2, rs2
-                                                                                  // RF write? r_idex_regwrite
+register bit[ADDR_W]        r_idex_pc              { pipeline = pipe.IDEX; };    // Program Counter
+register bit[RF_XPR_W]      r_idex_rd              { pipeline = pipe.IDEX; };    // rd (write) register number
+register bit[RF_XPR_W]      r_idex_rf_src1         { pipeline = pipe.IDEX; };    // register file output for src1, rs1
+register bit[RF_XPR_W]      r_idex_rf_src2         { pipeline = pipe.IDEX; };    // register file output for src2, rs2
+register bit[BOOLEAN_BIT]   r_idex_regwrite        { pipeline = pipe.IDEX; };    // RF write? r_idex_regwrite
                                                                                   // immediate value for src2
 
-register bit[ALUOP_W]   r_idex_aluop               { pipeline = pipe.IDEX; };    // ALU opcode
-register bit[ALU_SRC1_SEL_W] r_idex_src1_sl        { pipeline = pipe.IDEX; };    // ALU src1 select lines for mux
-register bit[ALU_SRC2_SEL_W] r_idex_src2_sl        { pipeline = pipe.IDEX; };    // ALU src2 select lines for mux
-register bit[BOOLEAN_BIT]  r_idex_branch_inst         { pipeline = pipe.IDEX; };    // If true, conditional branch instruction
-register bit[BOOLEAN_BIT]  r_idex_jump_inst           { pipeline = pipe.IDEX; };    // If true, jump instruction
-register bit[MEM_OPCODE_W] r_idex_mem_ops          { pipeline = pipe.IDEX; };    // Opcode for Loads and Store operations (NOP = no load or store)
-register bit[BOOLEAN_BIT]  r_idex_memread             { pipeline = pipe.IDEX; };    // If true, it is a Load operation
+register bit[ALUOP_W]           r_idex_aluop                { pipeline = pipe.IDEX; };    // ALU opcode
+register bit[ALU_SRC1_SEL_W]    r_idex_src1_sl              { pipeline = pipe.IDEX; };    // ALU src1 select lines for mux
+register bit[ALU_SRC2_SEL_W]    r_idex_src2_sl              { pipeline = pipe.IDEX; };    // ALU src2 select lines for mux
+register bit[BOOLEAN_BIT]       r_idex_branch_inst          { pipeline = pipe.IDEX; };    // If true, conditional branch instruction
+register bit[BOOLEAN_BIT]       r_idex_jump_inst            { pipeline = pipe.IDEX; };    // If true, jump instruction
+register bit[MEM_OPCODE_W]      r_idex_mem_ops              { pipeline = pipe.IDEX; };    // Opcode for Loads and Store operations (NOP = no load or store)
+register bit[BOOLEAN_BIT]       r_idex_memread              { pipeline = pipe.IDEX; };    // If true, it is a Load operation
 
 
 

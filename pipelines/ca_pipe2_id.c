@@ -141,9 +141,9 @@ event id_output : pipeline(pipe.IDEX)
         // Pipeline output
         // -----------------------------------------------------------------------------------------
 
-        // Assuming at this stage the worst case timing of any of the stages for a 5-stage pipeline will
+        // Assuming at this stage, the worst case timing of any of the stages for a 5-stage pipeline will
         // be the Execute (EX) stage, we will move the mux to select which type of interrupt to use if
-        // required for the ALU operation into the Instruction Decode (ID) stage.  By removing this addional
+        // required for the ALU operation into the Instruction Decode (ID) stage.  By removing this additional
         // logic that must occur in series, before the ALU operation, the total path through the EX stage
         // is reduced, minimizing the time required for the EX stage to complete.
         //
@@ -153,38 +153,49 @@ event id_output : pipeline(pipe.IDEX)
         //
         // Use the control line s_id_imm_gen_sel that is generated from the Decoder to set the Immediate value
         // to pass to the EX stage through the IDEX pipeline register
-        //
-        // Example:
-        //      switch (s_id_imm_gen_sel) {
-        //          case RTYPE_IMM_SEL:
-        //              r_idex_src2_imm = s_id_imm_rtype;
-        //              break;
-        //          ...
-        //          ...
-        //          default:
-        //              r_idex_src2_imm = 0;
-        //              break;
-        //      }
-        //
+
         // Complete the switch statement below using the pipeline register resource that you added in the 
         // previous step of this assignment.
-
+        
+        switch (s_id_imm_gen_sel) {
+            case RTYPE_IMM_SEL:
+                r_idex_src2_imm = 0;
+                break;
+            case ITYPE_IMM_SEL:
+                r_idex_src2_imm = s_id_imm_itype;
+                break;
+            case STYPE_IMM_SEL:
+                r_idex_src2_imm = s_id_imm_stype;
+                break;
+            case BTYPE_IMM_SEL:
+                r_idex_src2_imm = s_id_imm_btype;
+                break;
+            case UTYPE_IMM_SEL:
+                r_idex_src2_imm = s_id_imm_utype;
+                break;
+            case JTYPE_IMM_SEL:
+                r_idex_src2_imm = s_id_imm_jtype;
+                break;
+            default:
+                r_idex_src2_imm = 0;
+                break;
+        }
 
 
         // Passing data-path and control-signals to the next stage, EX, through the IDEX pipeline register
 
-        // Use the Program Counter IDEX pipeline register thate you declared in ca_resources.codal
+        // Use the Program Counter IDEX pipeline register that you declared in ca_resources.codal
         // What register from the IFID pipeline register will you use to pass the PC to the EX stage
         // You just added this pipeline register resource in the previous step of this assignment
         // Add this assignment here:
-
+        r_idex_pc = r_ifid_nextpc;
 
         // Use the register file ouptput for src1 IDEX pipeline register you declared in ca_resources.codal
         // What signal from the id (Instruction Decode) event will you use to pass the rs1 register value to 
         // the EX stage?  
         // You just added this pipeline register resource in the previous step of this assignment
         // Add this assignment here:
-
+        r_idex_rf_src1 = s_id_rf_src1;
 
 
         // Use the register file ouptput for src2 IDEX pipeline register you declared in ca_resources.codal
@@ -192,14 +203,14 @@ event id_output : pipeline(pipe.IDEX)
         // the EX stage?  
         // You just added this pipeline register resource in the previous step of this assignment
         // Add this assignment here:
-
+        r_idex_rf_src2 = s_id_rf_src2;
 
 
         // Use the rd (destination) register IDEX pipeline register that you declared in ca_resources.codal
         // What signal from the instruction parsing will you set the following IDEX pipeline register?
         // You just added this pipeline register resource in the previous step of this assignment
         // Add this assignment here:
-
+        r_idex_rd = s_id_rd;
 
         // In the RISCV architecture, register 0 is a special register that will always read 0 which
         // implies that it is a read-only register of value 0.  If the destination register is 0,
@@ -212,8 +223,12 @@ event id_output : pipeline(pipe.IDEX)
         // What signal will you use in the if statement from the instruction parsing?
         // You just added this pipeline register resource in the previous step of this assignment
         // Write this if, else statement here for r_idex_regwrite
-
-
+        if(r_idex_rd){
+            r_idex_regwrite = 1;
+        }
+        else{
+            r_idex_regwrite = 0;
+        }
 
         // What signal from the decoder will you set the following IDEX pipeline register?
         r_idex_aluop = s_id_aluop;

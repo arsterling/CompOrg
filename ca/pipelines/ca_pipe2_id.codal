@@ -118,6 +118,48 @@ event id : pipeline(pipe.IDEX)
         s_id_rf_src1 = rf_xpr.src1[s_id_src1];
         s_id_rf_src2 = rf_xpr.src2[s_id_src2];
 
+        //Hazard Logic Detection
+        //Selector for MUX1
+        if((r_memwb_rd == s_id_src1) && (r_memwb_rd != 0) && (r_memwb_regwrite == true)){
+            s_id_fwd1 = RFF_WB;
+        }
+        else{
+            s_id_fwd1 = RFF_REG;
+        }
+        //Selector for MUX2
+        if((r_memwb_rd == s_id_src2) && (r_memwb_rd != 0) && (r_memwb_regwrite == true)){
+            s_id_fwd2 = RFF_WB;
+        }
+        else{
+            s_id_fwd2 = RFF_REG;
+        }
+
+        //MUX1
+        switch(s_id_fwd1){
+            case RFF_REG:
+                s_id_src1_val = s_id_rf_src1;
+                break;
+            case RFF_WB:
+                s_id_src1_val = r_memwb_data_result;
+                break;
+            default:
+                s_id_src1_val = 0;
+                break;
+        }
+
+        //MUX2
+        switch(s_id_fwd2){
+            case RFF_REG:
+                s_id_src2_val = s_id_rf_src2;
+                break;
+            case RFF_WB:
+                s_id_src2_val = r_memwb_data_result;
+                break;
+            default:
+                s_id_src2_val = 0;
+                break;
+        }
+
         // Preserve the current instruction decoded
         if (cache_ready & !r_id_buffer_full) {
             r_id_instr_preserved = s_id_instr;
@@ -195,7 +237,11 @@ event id_output : pipeline(pipe.IDEX)
         // the EX stage?  
         // You just added this pipeline register resource in the previous step of this assignment
         // Add this assignment here:
-        r_idex_rf_src1 = s_id_rf_src1;
+        //New Register/signal
+        
+        r_idex_src1 = s_id_src1;
+        //Update register due to mux
+        r_idex_rf_src1 = s_id_src1_val;
 
 
         // Use the register file ouptput for src2 IDEX pipeline register you declared in ca_resources.codal
@@ -203,7 +249,11 @@ event id_output : pipeline(pipe.IDEX)
         // the EX stage?  
         // You just added this pipeline register resource in the previous step of this assignment
         // Add this assignment here:
-        r_idex_rf_src2 = s_id_rf_src2;
+
+        //New register/signal
+        r_idex_src2 = s_id_src2;
+        //Update register due to mux
+        r_idex_rf_src2 = s_id_src2_val;
 
 
         // Use the rd (destination) register IDEX pipeline register that you declared in ca_resources.codal
